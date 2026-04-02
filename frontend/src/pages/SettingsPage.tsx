@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -10,14 +11,17 @@ import {
   Loader2, 
   ShieldCheck,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Fingerprint,
+  Key
 } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState({
-    name: user?.name || '',
-    phone: '', // Phone isn't in user object yet, usually fetched via profile
+    name: '',
+    phone: '', 
   });
   const [passwords, setPasswords] = useState({
     currentPassword: '',
@@ -28,6 +32,12 @@ const SettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  useEffect(() => {
+    if (user?.name) {
+      setProfile((p) => ({ ...p, name: user.name }));
+    }
+  }, [user?.name]);
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -35,9 +45,9 @@ const SettingsPage: React.FC = () => {
     
     try {
       await api.put('/settings/profile', profile);
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setMessage({ type: 'success', text: 'Profile updated.' });
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Update failed.' });
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Could not update profile.' });
     } finally {
       setLoading(false);
     }
@@ -58,152 +68,215 @@ const SettingsPage: React.FC = () => {
         currentPassword: passwords.currentPassword,
         newPassword: passwords.newPassword,
       });
-      setMessage({ type: 'success', text: 'Password changed successfully!' });
+      setMessage({ type: 'success', text: 'Password updated.' });
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Change failed.' });
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Could not update password.' });
     } finally {
       setLoading(false);
     }
   };
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.06
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 12 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="max-w-4xl space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div>
-        <h2 className="text-3xl font-bold font-outfit tracking-tight">Account Settings</h2>
-        <p className="text-dark-muted mt-1 font-medium italic">Manage your profile information and security preferences</p>
-      </div>
-
-      {message.text && (
-        <div className={`p-4 rounded-xl flex items-center space-x-3 border ${message.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-rose-500/10 border-rose-500/20 text-rose-500'} font-medium`}>
-          {message.type === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
-          <span>{message.text}</span>
+    <div className="max-w-5xl page-shell">
+      <motion.div 
+        initial={{ opacity: 0, x: -12 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
+      >
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Fingerprint size={14} className="text-cyber-blue shrink-0" />
+            <span className="page-header-kicker">Account</span>
+          </div>
+          <h2 className="page-title">Settings</h2>
+          <p className="page-desc">Update your profile and manage password security.</p>
         </div>
-      )}
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Profile Card */}
-        <div className="card h-fit">
-          <div className="flex items-center space-x-3 mb-8">
-            <div className="p-2.5 bg-primary-600/10 text-primary-500 rounded-xl">
-              <User size={24} />
+      <AnimatePresence>
+        {message.text && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0, scale: 0.98 }}
+            animate={{ opacity: 1, height: 'auto', scale: 1 }}
+            exit={{ opacity: 0, height: 0, scale: 0.98 }}
+            className={`p-3 rounded-lg flex items-start gap-3 border text-xs font-medium ${
+              message.type === 'success' 
+                ? 'bg-cyber-emerald/10 border-cyber-emerald/25 text-cyber-emerald' 
+                : 'bg-cyber-rose/10 border-cyber-rose/25 text-cyber-rose'
+            }`}
+          >
+            {message.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 mt-0.5" /> : <AlertCircle size={18} className="shrink-0 mt-0.5" />}
+            <span>{message.text}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        variants={container}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
+      >
+        <motion.div variants={item} className="card border-l-2 border-l-cyber-blue relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-28 h-28 bg-cyber-blue/5 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none group-hover:bg-cyber-blue/10 transition-colors duration-500" />
+          
+          <div className="flex items-center gap-2.5 mb-5 relative z-10">
+            <div className="p-2 bg-cyber-blue/10 text-cyber-blue rounded-lg border border-cyber-blue/20 shrink-0">
+              <User size={18} />
             </div>
-            <h3 className="text-xl font-bold font-outfit">Personal Profile</h3>
+            <h3 className="text-sm font-semibold font-outfit text-white">Profile</h3>
           </div>
 
-          <form onSubmit={handleProfileUpdate} className="space-y-6">
-            <div>
-              <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-2 ml-1">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted" size={18} />
+          <form onSubmit={handleProfileUpdate} className="space-y-4 relative z-10">
+            <div className="space-y-1.5">
+              <label htmlFor="profile-name" className="block text-[10px] font-semibold text-cyber-text-secondary uppercase tracking-wide ml-0.5">Name</label>
+              <div className="relative group">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-text-muted group-focus-within:text-cyber-blue transition-colors pointer-events-none" size={16} />
                 <input
+                  id="profile-name"
                   type="text"
                   value={profile.name}
                   onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                  className="w-full bg-slate-900 border border-dark-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-medium"
+                  className="w-full bg-cyber-black/40 border border-white/5 rounded-lg py-2.5 pl-10 pr-3 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-cyber-blue/20 focus:border-cyber-blue/50 transition-all placeholder:text-cyber-text-muted/50"
+                  placeholder="Your name"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-2 ml-1">Email Address (Read Only)</label>
+            <div className="space-y-1.5">
+              <label htmlFor="profile-email" className="block text-[10px] font-semibold text-cyber-text-secondary uppercase tracking-wide ml-0.5">Email</label>
               <div className="relative opacity-60">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted" size={18} />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-text-muted pointer-events-none" size={16} />
                 <input
+                  id="profile-email"
                   type="email"
                   value={user?.email || ''}
                   disabled
-                  className="w-full bg-slate-900 border border-dark-border rounded-xl py-3 pl-12 pr-4 text-slate-400 font-medium cursor-not-allowed"
+                  readOnly
+                  className="w-full bg-cyber-black/60 border border-white/5 rounded-lg py-2.5 pl-10 pr-3 text-sm text-cyber-text-muted font-medium cursor-not-allowed"
                 />
               </div>
             </div>
 
-            <div>
-               <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-2 ml-1">Phone Number</label>
-               <div className="relative">
-                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted" size={18} />
+            <div className="space-y-1.5">
+               <label htmlFor="profile-phone" className="block text-[10px] font-semibold text-cyber-text-secondary uppercase tracking-wide ml-0.5">Phone</label>
+               <div className="relative group">
+                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-text-muted group-focus-within:text-cyber-blue transition-colors pointer-events-none" size={16} />
                  <input
+                   id="profile-phone"
                    type="tel"
                    value={profile.phone}
                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                   className="w-full bg-slate-900 border border-dark-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-medium"
+                   className="w-full bg-cyber-black/40 border border-white/5 rounded-lg py-2.5 pl-10 pr-3 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-cyber-blue/20 focus:border-cyber-blue/50 transition-all"
                    placeholder="+1 (555) 000-0000"
                  />
                </div>
             </div>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               type="submit"
               disabled={loading}
-              className="w-full btn-primary py-3.5 flex items-center justify-center space-x-2 shadow-xl"
+              className="w-full btn-primary py-2.5 flex items-center justify-center gap-2"
             >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> <span>Save Changes</span></>}
-            </button>
+              {loading ? <Loader2 className="animate-spin" size={18} /> : <><Save size={16} /> <span>Save profile</span></>}
+            </motion.button>
           </form>
-        </div>
+        </motion.div>
 
-        {/* Security Card */}
-        <div className="card h-fit">
-          <div className="flex items-center space-x-3 mb-8">
-            <div className="p-2.5 bg-indigo-500/10 text-indigo-500 rounded-xl">
-              <ShieldCheck size={24} />
+        <motion.div variants={item} className="card border-l-2 border-l-cyber-purple relative overflow-hidden group">
+          <div className="absolute bottom-0 right-0 w-28 h-28 bg-cyber-purple/5 rounded-full blur-3xl -mr-8 -mb-8 pointer-events-none group-hover:bg-cyber-purple/10 transition-colors duration-500" />
+          
+          <div className="flex items-center gap-2.5 mb-5 relative z-10">
+            <div className="p-2 bg-cyber-purple/10 text-cyber-purple rounded-lg border border-cyber-purple/20 shrink-0">
+              <ShieldCheck size={18} />
             </div>
-            <h3 className="text-xl font-bold font-outfit">Security & Password</h3>
+            <h3 className="text-sm font-semibold font-outfit text-white">Security</h3>
           </div>
 
-          <form onSubmit={handlePasswordChange} className="space-y-6">
-            <div>
-              <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-2 ml-1">Current Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted" size={18} />
+          <form onSubmit={handlePasswordChange} className="space-y-4 relative z-10">
+            <div className="space-y-1.5">
+              <label htmlFor="current-password" className="block text-[10px] font-semibold text-cyber-text-secondary uppercase tracking-wide ml-0.5">Current password</label>
+              <div className="relative group">
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-text-muted group-focus-within:text-cyber-purple transition-colors pointer-events-none" size={16} />
                 <input
+                  id="current-password"
                   type="password"
                   value={passwords.currentPassword}
                   onChange={(e) => setPasswords({ ...passwords, currentPassword: e.target.value })}
-                  className="w-full bg-slate-900 border border-dark-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-medium"
+                  className="w-full bg-cyber-black/40 border border-white/5 rounded-lg py-2.5 pl-10 pr-3 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-cyber-purple/20 focus:border-cyber-purple/50 transition-all"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-2 ml-1">New Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted" size={18} />
+            <div className="h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+
+            <div className="space-y-1.5">
+              <label htmlFor="new-password" className="block text-[10px] font-semibold text-cyber-text-secondary uppercase tracking-wide ml-0.5">New password</label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-text-muted group-focus-within:text-cyber-purple transition-colors pointer-events-none" size={16} />
                 <input
+                  id="new-password"
                   type="password"
                   value={passwords.newPassword}
                   onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
-                  className="w-full bg-slate-900 border border-dark-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-medium"
+                  className="w-full bg-cyber-black/40 border border-white/5 rounded-lg py-2.5 pl-10 pr-3 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-cyber-purple/20 focus:border-cyber-purple/50 transition-all"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-dark-muted uppercase tracking-widest mb-2 ml-1">Confirm New Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-muted" size={18} />
+            <div className="space-y-1.5">
+              <label htmlFor="confirm-password" className="block text-[10px] font-semibold text-cyber-text-secondary uppercase tracking-wide ml-0.5">Confirm new password</label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-text-muted group-focus-within:text-cyber-purple transition-colors pointer-events-none" size={16} />
                 <input
+                  id="confirm-password"
                   type="password"
                   value={passwords.confirmPassword}
                   onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-                  className="w-full bg-slate-900 border border-dark-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-medium"
+                  className="w-full bg-cyber-black/40 border border-white/5 rounded-lg py-2.5 pl-10 pr-3 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-cyber-purple/20 focus:border-cyber-purple/50 transition-all"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
                   required
                 />
               </div>
             </div>
 
-            <button
+            <motion.button
+               whileHover={{ scale: 1.01 }}
+               whileTap={{ scale: 0.99 }}
                type="submit"
                disabled={loading}
-               className="w-full btn-secondary py-3.5 flex items-center justify-center space-x-2 border border-dark-border hover:bg-indigo-600/10 hover:text-indigo-400 hover:border-indigo-500/20"
+               className="w-full btn-secondary text-white py-2.5 flex items-center justify-center gap-2 border-white/10 hover:bg-cyber-purple/10 hover:text-cyber-purple hover:border-cyber-purple/40 transition-colors duration-300"
             >
-               {loading ? <Loader2 className="animate-spin" size={20} /> : <><Lock size={20} /> <span>Update Password</span></>}
-            </button>
+               {loading ? <Loader2 className="animate-spin" size={18} /> : <><Zap size={16} /> <span>Update password</span></>}
+            </motion.button>
           </form>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

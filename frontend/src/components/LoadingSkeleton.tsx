@@ -16,11 +16,13 @@ export const TableSkeleton: React.FC<{ rows?: number }> = ({ rows = 5 }) => {
   );
 };
 
+const CHART_BAR_HEIGHTS = [45, 62, 38, 72, 55, 88, 48, 66, 52, 78, 42, 58];
+
 export const ChartSkeleton: React.FC = () => {
   return (
-    <div className="animate-pulse h-[300px] w-full bg-slate-800/20 rounded-xl flex items-end justify-around p-4 space-x-2">
-      {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} className="bg-slate-800/40 w-full rounded-t-lg" style={{ height: `${Math.random() * 80 + 20}%` }}></div>
+    <div className="animate-pulse h-full min-h-[240px] w-full bg-slate-800/15 rounded-lg flex items-end justify-around p-3 gap-1.5">
+      {CHART_BAR_HEIGHTS.map((pct, i) => (
+        <div key={i} className="bg-slate-800/45 w-full rounded-t-md" style={{ height: `${pct}%` }} />
       ))}
     </div>
   );

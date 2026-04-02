@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, Loader2, Gamepad2 } from 'lucide-react';
+import { Lock, Mail, Loader2, Gamepad2, Zap, ShieldCheck } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('affiliate@test.com');
@@ -21,95 +22,140 @@ const LoginPage: React.FC = () => {
       await login({ email, password });
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Login failed. Check your email and password.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-dark-bg relative overflow-hidden">
-      {/* Background Orbs */}
-      <div className="absolute top-0 -right-20 w-96 h-96 bg-primary-600/10 rounded-full blur-[100px]"></div>
-      <div className="absolute bottom-0 -left-20 w-96 h-96 bg-indigo-600/10 rounded-full blur-[100px]"></div>
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-cyber-black relative overflow-hidden font-sans">
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 -right-16 w-[min(420px,90vw)] h-[min(420px,90vw)] bg-cyber-blue/10 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 -left-16 w-[min(420px,90vw)] h-[min(420px,90vw)] bg-cyber-purple/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.45)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_65%_55%_at_50%_45%,#000_72%,transparent_100%)]" />
+      </div>
 
-      <div className="max-w-md w-full relative z-10">
-        <div className="text-center mb-10">
-          <div className="inline-flex p-4 rounded-2xl bg-primary-600/10 text-primary-500 mb-6 shadow-xl shadow-primary-900/20 border border-primary-500/20">
-            <Gamepad2 size={40} />
+      <motion.div 
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="max-w-[400px] w-full relative z-10"
+      >
+        <div className="text-center mb-8">
+          <motion.div 
+            initial={{ scale: 0.92 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.1, type: 'spring', stiffness: 260, damping: 20 }}
+            className="inline-flex relative group mb-5"
+          >
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-cyber-blue to-cyber-purple rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-300" />
+            <div className="relative p-4 rounded-xl bg-cyber-deep border border-cyber-blue/30 text-cyber-blue shadow-lg">
+              <Gamepad2 size={36} className="drop-shadow-[0_0_8px_rgba(34,211,238,0.45)]" />
+            </div>
+          </motion.div>
+          
+          <h1 className="text-2xl sm:text-3xl font-bold font-outfit tracking-tight text-white">
+            Affiliate<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyber-blue to-cyber-purple">Panel</span>
+          </h1>
+          <div className="flex items-center justify-center gap-2 mt-2">
+             <Zap size={12} className="text-cyber-blue shrink-0" />
+             <p className="text-[11px] font-medium uppercase tracking-widest text-cyber-text-secondary">Sign in</p>
           </div>
-          <h1 className="text-3xl font-bold font-outfit uppercase tracking-tight">Affiliate<span className="text-primary-500">Panel</span></h1>
-          <p className="text-dark-muted mt-2 font-medium">Online Gaming platform affiliate ecosystem</p>
         </div>
 
-        <div className="card shadow-2xl border-white/5 bg-white/[0.02] backdrop-blur-xl">
-          <h2 className="text-xl font-bold mb-6 text-center">Secure Sign In</h2>
+        <div className="card border-white/5 bg-cyber-deep/50 backdrop-blur-xl shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-cyber-blue/40 to-transparent" />
+          
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <h2 className="text-sm font-semibold text-white/95">Welcome back</h2>
+            <ShieldCheck size={18} className="text-cyber-emerald shrink-0" aria-hidden />
+          </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm font-medium text-center">
-                {error}
-              </div>
-            )}
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-3 bg-cyber-rose/10 border border-cyber-rose/20 rounded-lg text-cyber-rose text-xs font-medium text-center"
+                  role="alert"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <div>
-              <label className="block text-sm font-medium text-dark-muted mb-1.5 ml-1">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-muted" size={18} />
+            <div className="space-y-1.5">
+              <label htmlFor="login-email" className="block text-[10px] font-semibold text-cyber-text-secondary uppercase tracking-wide ml-0.5">Email</label>
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-text-muted group-focus-within:text-cyber-blue transition-colors pointer-events-none" size={16} />
                 <input
+                  id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-900/50 border border-dark-border rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all placeholder:text-slate-600"
-                  placeholder="name@company.com"
+                  className="w-full bg-cyber-black/40 border border-white/5 rounded-lg py-2.5 pl-10 pr-3 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-cyber-blue/20 focus:border-cyber-blue/45 transition-all placeholder:text-cyber-text-muted/45"
+                  placeholder="you@company.com"
+                  autoComplete="email"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-dark-muted mb-1.5 ml-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-muted" size={18} />
+            <div className="space-y-1.5">
+              <label htmlFor="login-password" className="block text-[10px] font-semibold text-cyber-text-secondary uppercase tracking-wide ml-0.5">Password</label>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-text-muted group-focus-within:text-cyber-blue transition-colors pointer-events-none" size={16} />
                 <input
+                  id="login-password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-900/50 border border-dark-border rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/50 transition-all placeholder:text-slate-600"
+                  className="w-full bg-cyber-black/40 border border-white/5 rounded-lg py-2.5 pl-10 pr-3 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-cyber-blue/20 focus:border-cyber-blue/45 transition-all placeholder:text-cyber-text-muted/45"
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   required
                 />
               </div>
             </div>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               type="submit"
               disabled={isLoading}
-              className="w-full btn-primary py-3.5 flex items-center justify-center space-x-2 text-lg shadow-lg"
+              className="w-full btn-primary py-2.5 mt-2 flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <Loader2 className="animate-spin" size={22} />
+                <Loader2 className="animate-spin" size={18} />
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <Zap size={16} className="fill-current" />
+                  <span>Sign in</span>
                 </>
               )}
-            </button>
+            </motion.button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-dark-muted">
-            Don't have an affiliate account?{' '}
-            <a href="#" className="text-primary-500 hover:text-primary-400 font-semibold transition-colors">Contact Support</a>
+          <p className="mt-6 text-center text-[10px] font-medium text-cyber-text-muted uppercase tracking-wide">
+            Need access?{' '}
+            <a href="#" className="text-cyber-blue hover:text-white transition-colors">Contact your manager</a>
           </p>
         </div>
 
-        <div className="mt-10 flex items-center justify-center space-x-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-           {/* Placeholder for legal/gaming logos */}
-           <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center font-bold text-xs">18+</div>
-           <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center font-bold text-xs uppercase tracking-tighter">Secure</div>
-           <div className="w-12 h-12 bg-white/10 rounded flex items-center justify-center font-bold text-xs uppercase tracking-tighter">Global</div>
-        </div>
-      </div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[10px] text-cyber-text-muted/80"
+        >
+           <span className="px-2 py-1 bg-white/5 border border-white/10 rounded-md font-medium">Secure session</span>
+           <span className="px-2 py-1 bg-white/5 border border-white/10 rounded-md font-medium">18+</span>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
