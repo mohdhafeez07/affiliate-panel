@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: affiliate_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-root}
+      POSTGRES_DB: ${DATABASE_NAME:-affiliate_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Backend API
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: affiliate_api
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER:-postgres}:${DATABASE_PASSWORD:-root}@db:5432/${DATABASE_NAME:-affiliate_db}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-super-secret-key-123}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-refresh-secret-456}
+      ACCESS_TOKEN_EXPIRY: 15m
+      REFRESH_TOKEN_EXPIRY: 7d
+    depends_on:
+      - db
+
+  # Frontend Dashboard
+  client:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: affiliate_dashboard
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

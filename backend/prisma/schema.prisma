@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AffiliateStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum PayoutStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Affiliate {
+  id              String           @id @default(uuid())
+  name            String
+  email           String           @unique
+  password        String
+  referralCode    String           @unique
+  phone           String?
+  status          AffiliateStatus  @default(ACTIVE)
+  balance         Decimal          @default(0.0) @db.Decimal(10, 2)
+  role            String           @default("AFFILIATE")
+  clicks          ClickTracking[]
+  registrations   Registration[]
+  deposits        Deposit[]
+  earnings        Earnings[]
+  payoutRequests  PayoutRequest[]
+  refreshTokens   RefreshToken[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([email])
+  @@index([referralCode])
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  @@index([affiliateId])
+}
+
+model ClickTracking {
+  id          String    @id @default(uuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  ipAddress   String?
+  device      String?
+  source      String?
+  clickedAt   DateTime  @default(now())
+
+  @@index([affiliateId])
+  @@index([clickedAt])
+}
+
+model Registration {
+  id          String    @id @default(uuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  username    String
+  email       String
+  registeredAt DateTime  @default(now())
+
+  @@index([affiliateId])
+  @@index([registeredAt])
+}
+
+model Deposit {
+  id              String    @id @default(uuid())
+  affiliateId     String
+  affiliate       Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  playerId        String
+  amount          Decimal   @db.Decimal(10, 2)
+  depositedAt     DateTime  @default(now())
+  isFirstDeposit  Boolean   @default(false)
+
+  @@index([affiliateId])
+  @@index([depositedAt])
+}
+
+model Earnings {
+  id                   String    @id @default(uuid())
+  affiliateId          String
+  affiliate            Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  amount               Decimal   @db.Decimal(10, 2)
+  commissionPercentage Float
+  revenueType          String    @default("CPA") // CPA, RevShare
+  createdAt            DateTime  @default(now())
+
+  @@index([affiliateId])
+  @@index([createdAt])
+}
+
+model PayoutRequest {
+  id          String       @id @default(uuid())
+  affiliateId String
+  affiliate   Affiliate    @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  amount      Decimal      @db.Decimal(10, 2)
+  status      PayoutStatus @default(PENDING)
+  requestedAt DateTime     @default(now())
+  approvedAt  DateTime?
+
+  @@index([affiliateId])
+  @@index([status])
+}
+
+model MarketingAsset {
+  id           String   @id @default(uuid())
+  title        String
+  imageUrl     String
+  downloadUrl  String
+  createdAt    DateTime @default(now())
+}
