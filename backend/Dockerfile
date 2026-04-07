@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20-bullseye
 
 WORKDIR /app
 
@@ -12,6 +12,6 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-EXPOSE 5000
+EXPOSE 10000
 
 CMD ["npm", "start"]
